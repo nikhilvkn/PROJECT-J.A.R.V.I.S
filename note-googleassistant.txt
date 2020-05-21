@@ -1,0 +1,117 @@
+Hello world,
+
+This is my first step in building a vioce assistant for my laptop, which will talk to me when I am working just like J.A.R.V.I.S
+googled many details and those where really high level, so I thought of starting with our google assistant api
+
+These steps below have helped me in setting that up in my mackbook,
+
+1. Be sure that you have Python3 installed on macbook
+2. It's better to create a virtual environment for this, so I created one
+3. Install google-assistant-sdk[samples] package
+	
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m pip install google-assistant-sdk[samples]
+	Collecting google-assistant-sdk[samples]
+ 
+4. Refer this https://www.youtube.com/watch?v=tt-gOQSYbcQ , this does the initial job of creating a project in google cloud and creating the client secret, which is needed in next step.
+5. Execute below command,
+
+	python -m googlesamples.assistant.auth_helpers --client-secrets ~/Downloads/client_secret_439148560560-c9jkfho9p1f6uvqlveccftdbq1dmmtsk.apps.googleusercontent.com.json 
+
+	This has given me following error:
+
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant.auth_helpers --client-secrets ~/Downloads/client_secret_439148560560-c9jkfho9p1f6uvqlveccftdbq1dmmtsk.apps.googleusercontent.com.json 
+	/Users/nnarayanan/NikhilLearnings/VirtualEnv/Python-3/bin/python: No module named googlesamples.assistant.auth_helpers
+	
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant
+	/Users/nnarayanan/NikhilLearnings/VirtualEnv/Python-3/bin/python: No module named googlesamples.assistant.__main__; 'googlesamples.assistant' is a package and cannot be directly executed
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$
+
+So I checked the lib for python and I didn't find googlesamples.assistant.auth_helpers module
+
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ ll lib/python3.7/site-packages/googlesamples/assistant/grpc/
+	total 176
+    -rw-r--r--   1 nnarayanan  1507932100    625 Jan  9 13:12 __init__.py
+    drwxr-xr-x  11 nnarayanan  1507932100    374 Jan  9 13:13 __pycache__
+    -rw-r--r--   1 nnarayanan  1507932100   2227 Jan  9 13:12 assistant_helpers.py
+    -rw-r--r--   1 nnarayanan  1507932100  13179 Jan  9 13:12 audio_helpers.py
+    -rw-r--r--   1 nnarayanan  1507932100   6462 Jan  9 13:12 audiofileinput.py
+    -rw-r--r--   1 nnarayanan  1507932100   1042 Jan  9 13:12 browser_helpers.py
+    -rw-r--r--   1 nnarayanan  1507932100   3336 Jan  9 13:12 device_helpers.py
+    -rw-r--r--   1 nnarayanan  1507932100  17521 Jan  9 13:12 devicetool.py
+    -rw-r--r--   1 nnarayanan  1507932100  19616 Jan  9 13:12 pushtotalk.py
+    -rw-r--r--   1 nnarayanan  1507932100   7806 Jan  9 13:12 textinput.py
+
+Then I googled a bit on this and got answer from, 
+https://stackoverflow.com/questions/44091251/when-installing-google-assistant-i-an-error-googlesamples-assistant-is-a-p
+
+"As per version 0.3.0 of the SDK the gRPC samples are using a different auth helpers" - this is the reason. I was happy here, continued further
+
+6. Need to authenticate with the Key
+
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ google-oauthlib-tool --client-secrets ~/Downloads/client_secret_439148560560-c9jkfho9p1f6uvqlveccftdbq1dmmtsk.apps.googleusercontent.com.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype --save --headless
+
+	Please visit this URL to authorize this application: https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=439148560560-c9jkfho9p1f6uvqlveccftdbq1dmmtsk.apps.googleusercontent.com&redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fassistant-sdk-prototype&state=bg1uTBr6cgjDz9MmQ5SZoFhvCPAu95&prompt=consent&access_type=offline
+	Enter the authorization code: 4/zQAYklkJxamLESZ4h5Yzj1ZoRYAxgOLLDCHRFg5yHo9RWILGVY4a7kM
+	credentials saved: /Users/nnarayanan/Library/Application Support/google-oauthlib-tool/credentials.json
+
+7. Fly our assistant on mac :P
+	
+	Attempt 1 (Error):
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant
+	/Users/nnarayanan/NikhilLearnings/VirtualEnv/Python-3/bin/python: No module named googlesamples.assistant.__main__; 'googlesamples.assistant' is a package and cannot be directly executed
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ 
+
+	Attempt 2 (Error):
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant.grpc.pushtotalk
+	INFO:root:Connecting to embeddedassistant.googleapis.com
+	WARNING:root:Device config not found: [Errno 2] No such file or directory: '/Users/nnarayanan/Library/Application Support/googlesamples-assistant/device_config.json'
+	INFO:root:Registering device
+	ERROR:root:Option --device-model-id required when registering a device instance.
+
+This error was little different. Here it's saying I need to do a Device registration for google assistant to work. I did command registration becoz, I import the project rather than creating one in https://console.actions.google.com/
+
+Device Registration Command:
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ googlesamples-assistant-devicetool --project-id jarvis-nn register --model jarvis-nn-macbook-nn --type LIGHT --manufacturer Apple-macbook-nn --product-name jarvis --device jarvis-mackbook-nn --client-type SERVICE
+	Creating new device model
+	Model jarvis-nn-macbook-nn successfully registered
+	Creating new device
+	Device instance jarvis-mackbook-nn successfully registered
+
+Then I tried to run above command to fly assistant and again it showed me the same error,
+
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant.grpc.pushtotalk
+	INFO:root:Connecting to embeddedassistant.googleapis.com
+	WARNING:root:Device config not found: [Errno 2] No such file or directory: '/Users/nnarayanan/Library/Application Support/googlesamples-assistant/device_config.json'
+	INFO:root:Registering device
+	ERROR:root:Option --device-model-id required when registering a device instance.
+
+The reason was that, I need to specify project id and device model id. Finally I was able to run my google assistant like this,
+
+	Attempt 3 (Success):
+	(Python-3) Ban-1nnarayanan-M:Python-3 nnarayanan$ python -m googlesamples.assistant.grpc.pushtotalk --device-model-id jarvis-nn-macbook-nn --project-id jarvis-nn
+	INFO:root:Connecting to embeddedassistant.googleapis.com
+	INFO:root:Registering device
+	INFO:root:Device registered: adba7dfe-13ea-11e9-b7d8-8c8590001c91
+	Press Enter to send a new request...
+	INFO:root:Recording audio request.
+
+
+8. Here I found a pblm, I need to press Enter for asking google. I don't want this, I want google to be listening to me always.
+For this, I edited (commented out) line number 456 & 457 from lib/python3.7/site-packages/googlesamples/assistant/grpc/pushtotalk.py and that one worked perfectly as I expected.
+
+Project Url's:
+https://console.cloud.google.com/home/dashboard?project=jarvis-nn
+https://console.actions.google.com/
+https://myaccount.google.com/activitycontrols
+
+Registration command line : https://developers.google.com/assistant/sdk/reference/device-registration/device-tool
+Google Library			  :	https://developers.google.com/assistant/sdk/guides/library/python/
+Novaspirit				  : https://www.novaspirit.com/2017/05/02/google-assistant-raspberry-pi/
+Our own voice control     : https://towardsdatascience.com/building-a-simple-voice-assistant-for-your-mac-in-python-62247543b626
+
+
+Thanks,
+Looking for more adventure..... :)
+
+
+
