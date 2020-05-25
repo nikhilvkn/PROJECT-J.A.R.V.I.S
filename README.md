@@ -33,3 +33,10 @@ Listening to you...
 GET http://localhost:9200/voice_assistant/text/_search [status:400 request:0.003s]
 Listening to you...
 ```
+
+
+
+
+```
+Maintainer: Nikhil Narayanan [nikhilvkn@yahoo.com]
+```
